@@ -1,33 +1,29 @@
-# Python virtual environment
-.venv/
-venv/
-env/
-
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.pycache
-
-# Pytest cache
-.pytest_cache/
-
-# Distribution / packaging
-*.egg-info/
-dist/
-build/
-
-# Jupyter Notebooks
-.ipynb_checkpoints/
-
-# IDEs
-.vscode/
+books/
+temp/
 .idea/
+.vscode/
+lectures/_minted/
+bin/
+include/
+lib/
+share/
 
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
+*.minted
+*.aux
+*.nav
+*.out
 *.log
+*.snm
+*.toc
+*.vrb
+*.swp
+*.tmp
+*.fls
+*.xdv
+*.fdb_latexmk
+.DS_Store
+src/linalg/bin
+src/linalg/lib
+src/linalg/include
+src/linalg/share
+
