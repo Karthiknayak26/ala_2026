@@ -1,0 +1,493 @@
+=== PAGE 1 ===
+Manipal School of Information Sciences
+AME 5151 - Applied Linear Algebra Lab
+Assignment 2
+Academic Year: 2026-2027, Semester: 1
+Tuesday, 15 September, 2026
+This assignment maps to the lab course outcomeCO2:
+Implement models for real-life applications using linear algebra principles and analyze
+the results from a practical perspective.
+Total Points: 50
+Semantic Tagging with GloVe and NumPy
+You have already built aVector class using tuples for storage and have implemented
+operations such asadd, scale, dot, norm, andcosine_similarity.
+In this lab, you will apply the same vector operations to word embeddings. We will
+use the pretrained GloVe model glove-wiki-gigaword-50. Each word represented by this
+model is associated with a vector inℝ50.
+The main objective of this lab is to move from computing cosine similarity between
+one pair of vectors to computing cosine similarities between two collections of vectors.
+Suppose that, after preprocessing, the input text contains𝑛 words that are present in
+the model vocabulary. Arrange their embedding vectors as the rows of a matrix𝑊 ∈
+ℝ𝑛×50.
+Similarly, arrange the vectors corresponding to 20 predefined tags as the rows of a
+matrix 𝑇 ∈ ℝ 20×50.
+After normalizing every row of𝑊 and 𝑇 to have Euclidean norm one, define
+ˆ𝑊 ∈ ℝ 𝑛×50, ˆ𝑇 ∈ ℝ 20×50.
+The matrix𝑆 = ˆ𝑊 ˆ𝑇 𝑇 has dimensions𝑆 ∈ ℝ 𝑛×20.
+1
+
+=== PAGE 2 ===
+Its entries satisfy
+𝑆 𝑖𝑗 = ˆ𝑊 𝑖,∶ ˆ𝑇 𝑇
+𝑗,∶ = cos(𝑊 𝑖,∶, 𝑇𝑗,∶).
+Thus, 𝑆 𝑖𝑗 is the cosine similarity between the𝑖-th word in the processed text and the
+𝑗-th tag.
+This is the central linear-algebra operation in the lab.
+Learning Objectives
+By the end of this lab, you should be able to:
+1. Represent a fixed vocabulary of 20 tags as a matrix
+𝑇 ∈ ℝ 20×50.
+2. Preprocess an input text and represent its in-vocabulary words as a matrix
+𝑊 ∈ ℝ 𝑛×50.
+3. Compute cosine similarity between every in-vocabulary text word and every tag.
+4. Construct the complete similarity matrix
+𝑆 ∈ ℝ 𝑛×20.
+5. Compute the same similarity matrix in two ways:
+(a) using your ownVectorclass and Python loops;
+(b) using NumPy matrix operations.
+6. Verifynumericallythatthetwoimplementationscomputethesamecosine-similarity
+values, up to normal floating-point error.
+7. Use the similarity matrix to rank the 20 tags according to their relevance to the
+input text.
+2
+
+=== PAGE 3 ===
+Given Input and Required Components
+Use the pretrained embedding model glove-wiki-gigaword-50. The model associates ev-
+ery word in its vocabulary with a 50-dimensional NumPy vector.
+You must implement:
+1. a vocabulary of exactly 20 tags.
+2. a preprocessing pipeline for the input text.
+3. construction of the tag matrix𝑇.
+4. construction of the text matrix𝑊.
+5. construction of the similarity matrix using yourVectorclass.
+6. construction of the similarity matrix using NumPy.
+7. numerical verification of the two results.
+8. tag ranking using max pooling.
+Do not use a library function that directly computes the complete cosine-similarity
+matrix.
+Part A — Choose 20 Tags
+Choose exactly 20 tags that you consider appropriate for describing activities associated
+with a research university.
+Each tag must represent an academic, research, educational, professional, institu-
+tional, or campus-related concept.
+A possible starting vocabulary is:research, innovation, education, university, students,
+faculty, campus, engineering, medicine, technology, curriculum, collaboration, publication,
+laboratory, scholarship, mentorship, internship, entrepreneurship, accreditation, alumni.
+You may use this list or construct your own list.
+In your documentation, briefly justify your choice of tag vocabulary.
+3
+
+=== PAGE 4 ===
+Single-word tags
+If a tag consists of a single word𝑡, its tag vector is
+v𝑡 = model[t].
+Every single-word tag must be present in the model vocabulary.
+For example:
+1 if tag not in model.key_to_index:
+2 raise ValueError(f"Tag not in vocabulary: {tag}")
+Multi-word tags
+You may use a multi-word tag such as
+higher education .
+Suppose a tag consists of𝑘 words
+𝑡1, 𝑡2, … , 𝑡𝑘.
+Represent the tag by the arithmetic mean of the individual word vectors:
+vtag = 1
+𝑘
+𝑘
+∑
+𝑟=1
+v𝑡𝑟.
+Every component word of a multi-word tag must be present in the model vocabulary.
+If any component word is absent, choose a different tag.
+Document all multi-word tags used in your vocabulary.
+Part B — Build the Input Text
+Collectatmost400wordsofrealtextconcerningManipalUniversityfromLinkedInposts.
+Cite the source of every excerpt used.
+Save the collected material in a plain-text file with extension.txt.
+The text may contain:
+• punctuation;
+• names;
+4
+
+=== PAGE 5 ===
+• numbers;
+• hashtags;
+• repeated words;
+• words that do not occur in the embedding vocabulary.
+Your program must handle such input without assuming that every token has a cor-
+responding embedding vector.
+Part C — Preprocess the Text
+Apply the following preprocessing steps in the stated order:
+1. convert the text to lowercase;
+2. remove punctuation;
+3. split the resulting text into tokens;
+4. remove stopwords using a small stopword set that you define;
+5. remove tokens whose length is less than or equal to 2;
+6. determine which remaining tokens occur in the embedding vocabulary.
+Do not use an external stopword library. Define a small stopword set yourself.
+For example:
+1 STOPWORDS = {
+2 "the", "a", "an", "and", "or", "of", "to",
+3 "in", "on", "for", "is", "are", "was", "were",
+4 "with", "at", "by", "from"
+5 }
+This starter set is deliberately incomplete. Real LinkedIn text will also contain pro-
+nouns, demonstratives, and other function words (it, this, that, our, we, and simi-
+lar). Expand the set as needed for your own text and note in your documentation what
+you added.
+Let
+𝑥1, 𝑥2, … , 𝑥𝑚
+5
+
+=== PAGE 6 ===
+denote the tokens remaining after the first five preprocessing steps.
+Some of these tokens may not be present in the model vocabulary.
+Define the in-vocabulary token sequence as
+𝑤1, 𝑤2, … , 𝑤𝑛, 𝑛 ≤ 𝑚,
+where each𝑤𝑖 is present in the model vocabulary.
+Your program must report:
+• the number of tokens before preprocessing;
+• the number of tokens after preprocessing;
+• the number of in-vocabulary tokens;
+• the number of out-of-vocabulary tokens;
+• the distinct out-of-vocabulary tokens.
+Repeated in-vocabulary words mustnot be removed. If a word appears several times
+in the processed text, its vector must appear the same number of times in the text matrix.
+6
+
+=== PAGE 7 ===
+Part D — Build the Tag and Text Matrices
+Implement the following functions.
+1 def build_tag_matrix(model, tags):
+2 """
+3 Construct the tag matrix.
+4
+5 Returns:
+6 tag_names:
+7 list[str] containing exactly 20 tag names.
+8
+9 T:
+10 NumPy array with shape (20, 50).
+11
+12 For a single-word tag:
+13 the corresponding row of T is model[tag].
+14
+15 For a multi-word tag:
+16 the corresponding row is the arithmetic mean
+17 of the vectors of all component words.
+18
+19 Every word used in a tag must occur in the model
+20 vocabulary. Otherwise, raise an error.
+21 """
+22
+23 def build_text_matrix(model, tokens):
+24 """
+25 Construct the text matrix.
+26
+27 Parameters:
+28 tokens:
+29 preprocessed tokens obtained after lowercasing,
+30 punctuation removal, stopword removal, and the
+31 length filter.
+32
+33 Returns:
+34 in_vocab_tokens:
+35 tokens that occur in the model vocabulary,
+36 preserving their original order and repetitions.
+37
+38 oov_tokens:
+39 tokens that do not occur in the model vocabulary.
+7
+
+=== PAGE 8 ===
+40
+41 W:
+42 NumPy array with shape (n, 50), where n is the
+43 number of in-vocabulary tokens.
+44
+45 Row i of W is the embedding vector of
+46 in_vocab_tokens[i].
+47 """
+If
+𝑤1, 𝑤2, … , 𝑤𝑛
+are the in-vocabulary tokens, then
+𝑊 =
+⎡⎢⎢⎢
+⎣
+— w𝑇
+1 —
+— w𝑇
+2 —
+⋮
+— w𝑇
+𝑛 —
+⎤⎥⎥⎥
+⎦
+∈ ℝ 𝑛×50.
+Similarly,
+𝑇 =
+⎡⎢⎢⎢
+⎣
+— t𝑇
+1 —
+— t𝑇
+2 —
+⋮
+— t𝑇
+20 —
+⎤⎥⎥⎥
+⎦
+∈ ℝ 20×50.
+Checkpoint
+Print:
+1 print(T.shape)
+2 print(W.shape)
+Verify that
+𝑇.shape = (20, 50)
+and
+𝑊 .shape = (𝑛, 50).
+If 𝑛 = 0 , the input contains no usable words and the program must terminate with
+an explanatory error message rather than attempting the similarity computation.
+8
+
+=== PAGE 9 ===
+Part E — Cosine Similarity Using Your Vector Class
+Recall that for nonzero vectorsu, v ∈ ℝ 50,
+cos(u, v) = u ⋅ v
+‖u‖2‖v‖2
+.
+First compute the complete similarity matrix using your ownVector class.
+Implement:
+1 def similarity_matrix_vector_class(W, T):
+2 """
+3 Compute the complete cosine-similarity matrix using
+4 the previously implemented Vector class.
+5
+6 Every entry MUST be computed by constructing two
+7 Vector instances and calling their cosine_similarity
+8 method -- not by calling NumPy's dot/norm functions
+9 directly on the rows of W and T.
+10
+11 Returns:
+12 S with shape (n_words, 20), where
+13
+14 S[i, j] = Vector(W[i]).cosine_similarity(Vector(T[j])).
+15
+16 This implementation may use Python loops.
+17 NumPy matrix multiplication must not be used to
+18 compute the similarities in this function.
+19 """
+For every𝑖 and 𝑗,
+𝑆 𝑖𝑗 =
+𝑊 𝑖,∶ 𝑇 𝑇
+𝑗,∶
+‖𝑊 𝑖,∶‖2‖𝑇𝑗,∶‖2
+.
+The resulting matrix must have dimensions
+𝑆Vector ∈ ℝ 𝑛×20.
+Thisimplementationservesasthereferencecomputationusingthevectoroperations
+that you implemented earlier in the course.
+9
+
+=== PAGE 10 ===
+Part F — Cosine Similarity Using NumPy
+Now compute the same matrix without using a Python-level double loop over all text-
+word/tag pairs.
+First normalize every row of𝑊:
+ˆ𝑊 𝑖,∶ = 𝑊 𝑖,∶
+‖𝑊 𝑖,∶‖2
+.
+Similarly, normalize every row of𝑇:
+ˆ𝑇𝑗,∶ =
+𝑇𝑗,∶
+‖𝑇𝑗,∶‖2
+.
+Then compute
+𝑆NumPy = ˆ𝑊 ˆ𝑇 𝑇
+using NumPy matrix multiplication.
+The matrix dimensions are
+ˆ𝑊⏟
+𝑛×50
+ˆ𝑇 𝑇⏟
+50×20
+= 𝑆NumPy⏟ ⎵ ⏟ ⎵ ⏟
+𝑛×20
+.
+Implement:
+1 def similarity_matrix_numpy(W, T):
+2 """
+3 Compute all text-word/tag cosine similarities using
+4 NumPy row normalization and matrix multiplication.
+5
+6 Returns:
+7 S with shape (n_words, 20).
+8 """
+A suitable implementation has the following mathematical structure:
+1 W_norm = np.linalg.norm(W, axis=1, keepdims=True)
+2 T_norm = np.linalg.norm(T, axis=1, keepdims=True)
+3
+4 W_hat = W / W_norm
+5 T_hat = T / T_norm
+6
+7 S = W_hat @ T_hat.T
+10
+
+=== PAGE 11 ===
+Before division, verify that the row norms are nonzero.
+Do not call a library cosine-similarity function for this computation.
+Part G — Verify the Two Implementations
+The two similarity matrices must represent the same mathematical quantities.
+Beforecomparingthem,convert 𝑆VectortoaNumPyarray(e.g. S_vector = np.array(S_vector) )
+if yourVector-class implementation returned a nested list.
+Compare them using
+1 np.allclose(S_vector, S_numpy)
+with an appropriate floating-point tolerance.
+The result should beTrue.
+Because floating-point arithmetic is approximate, do not require the corresponding
+entries to be bit-for-bit identical.
+Also report
+1 np.max(np.abs(S_vector - S_numpy))
+to show the largest absolute numerical difference between the two implementations.
+Part H — Rank Tags Using Max Pooling
+The 𝑗-th column of 𝑆 contains the similarities between tag𝑗 and every in-vocabulary
+word in the text:
+𝑆1𝑗, 𝑆2𝑗, … , 𝑆𝑛𝑗.
+Define the max-pool score for tag𝑗 as
+𝑟𝑗 = max
+1≤𝑖≤𝑛
+𝑆 𝑖𝑗.
+Thus,
+𝑟𝑗 = max
+𝑖
+𝑆 𝑖𝑗
+is the similarity between tag𝑗 and the single text word having the highest cosine
+similarity to that tag.
+Implement:
+11
+
+=== PAGE 12 ===
+1 def rank_tags(tag_names, S, in_vocab_tokens):
+2 """
+3 For each tag j:
+4
+5 score[j] = max_i S[i, j]
+6
+7 Return the tags sorted in descending order of score.
+8
+9 For each tag, also return the text token that produced
+10 the maximum score.
+11 """
+For each of the top eight tags, display:
+• the rank;
+• the tag;
+• its max-pool similarity score;
+• the text word that produced that score.
+For example, the output format may be:
+Rank Tag Score Best-matching text word
+----------------------------------------------------------
+1 research 0.91 research
+2 innovation 0.84 innovative
+3 technology 0.79 digital
+...
+Your numerical values will depend on the text and the selected tag vocabulary.
+Interpretation of Max Pooling
+Max pooling answers the following precise question:
+For this tag, which single word in the document has the highest cosine sim-
+ilarity to the tag?
+12
+
+=== PAGE 13 ===
+A high max-pool score doesnot imply that the corresponding topic dominates the
+document. A tag can receive a high score because of a single strongly related word.
+If a text word is identical to a tag (e.g. the word “research” appears verbatim and “re-
+search” is one of your tags), that pair gets a similarity of exactly 1, since cosine similarity
+ofavectorwithitselfis1. Onrealtextthiswillhappenoften,andsuchexactmatcheswill
+tend to dominate the top of your ranking ahead of tags that are only captured through
+a genuinely different, semantically related word. Note in your output which top-ranked
+tags were matched by an identical word versus a different one.
+Therefore,max-poolrankingmeasuresthepresenceofstronglocalsemanticevidence
+for a tag; it does not measure how frequently or howextensively the corresponding topic
+occurs throughout the text.
+Required Unit Tests
+Write unit tests for at least the following cases.
+1. Verify that
+𝑇.shape = (20, 50).
+2. Verify that if the text contains𝑛 in-vocabulary tokens, then
+𝑊 .shape = (𝑛, 50).
+3. Verify that
+𝑆.shape = (𝑛, 20).
+4. Select at least one pair consisting of a text word and a tag. Compute its cosine sim-
+ilarity using yourVector class and verify that it agrees with the corresponding
+entry of the NumPy similarity matrix.
+5. Verify that
+1 np.allclose(S_vector, S_numpy)
+2
+returns True.
+6. Verify that an out-of-vocabulary text token is excluded from𝑊 and is reported as
+out-of-vocabulary.
+7. Verify that a tag vocabulary containing an out-of-vocabulary component causes
+build_tag_matrix to raise an error (it must not silently drop the offending
+tag and proceed with the remaining 19).
+13
+
+=== PAGE 14 ===
+Questions for the Lab Report
+Answer the following questions precisely.
+1. If there are𝑛 in-vocabulary words in the processed text, give the dimensions of:
+(a) one word vector;
+(b) 𝑊;
+(c) 𝑇;
+(d) 𝑇 𝑇;
+(e) 𝑆.
+2. Explain why, after row normalization,
+ˆ𝑊 𝑖,∶ ˆ𝑇 𝑇
+𝑗,∶
+is equal to the cosine similarity between the corresponding original vectors.
+3. Explain why
+ˆ𝑊 ˆ𝑇 𝑇
+computes all20𝑛pairwise text-word/tag cosine similarities in one matrix multipli-
+cation.
+4. Supposeasinglewordinthedocumenthasveryhighsimilaritytothetag medicine,
+while all other words have low similarity to that tag. Explain how max pooling
+treats this situation.
+5. Does a high max-pool score imply that the corresponding tag describes the domi-
+nant topic of the document? Explain.
+6. For your own top-eight ranking, identify which tags were matched by a text word
+identical to the tag itself, and which were matched by a genuinely different word.
+What does the difference tell you about what cosine similarity over word embed-
+dings is, and is not, capturing?
+7. If a concept is not represented by any of the 20 chosen tags, can the ranking algo-
+rithm introduce a new tag for that concept? Explain.
+8. Why are out-of-vocabulary tokens excluded from𝑊?
+9. Explainthemathematicalrelationshipbetweenyourpair-by-pair Vector.cosine_similarity
+computation and the NumPy matrix multiplication used to construct𝑆.
+14
+
+=== PAGE 15 ===
+Submission Requirements
+Submit:
+1. the source text file containing at most 400 words;
+2. citations for all LinkedIn excerpts used;
+3. your Python source code;
+4. your unit tests;
+5. program output showing:
+• token statistics;
+• 𝑇.shape;
+• 𝑊 .shape;
+• verification usingnp.allclose;
+• the maximum numerical difference between the two similarity matrices;
+• the top eight ranked tags and their best-matching text words;
+6. answers to the lab-report questions.
+Rubric — 50 Points
+Component Points
+Tag vocabulary and tag-matrix construction 8
+Text preprocessing and OOV handling 7
+Similarity matrix using theVector class 8
+Vectorized NumPy similarity matrix 10
+Max-pool tag ranking 6
+Unit tests and numerical verification 7
+Documentation and lab-report answers 4
+Total 50
+15
+
